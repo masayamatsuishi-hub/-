@@ -16,6 +16,7 @@ export default function TrainingLogSection() {
   const [customMets, setCustomMets] = useState('6.0')
   const [duration, setDuration] = useState('60')
   const [submitting, setSubmitting] = useState(false)
+  const [addError, setAddError] = useState<string | null>(null)
 
   useEffect(() => {
     if (user) fetchLogsForDate(user.id, date)
@@ -37,6 +38,7 @@ export default function TrainingLogSection() {
   const handleAdd = async () => {
     if (!user) return
     setSubmitting(true)
+    setAddError(null)
     try {
       await addLog(user.id, {
         date,
@@ -45,6 +47,8 @@ export default function TrainingLogSection() {
         duration_minutes: Number(duration),
         calories_burned: preview,
       })
+    } catch (e) {
+      setAddError(e instanceof Error ? e.message : '記録の追加に失敗しました')
     } finally {
       setSubmitting(false)
     }
@@ -105,13 +109,15 @@ export default function TrainingLogSection() {
           <span className="font-semibold text-sky-400">消費 約{preview}kcal</span>
         </div>
 
+        {addError && <p className="text-sm text-red-400">{addError}</p>}
+
         <button
           type="button"
           onClick={handleAdd}
           disabled={submitting || mets <= 0}
           className="w-full rounded-lg bg-emerald-500 py-2.5 text-sm font-semibold text-slate-950 hover:bg-emerald-400 disabled:opacity-50"
         >
-          追加する
+          {submitting ? '追加中...' : '追加する'}
         </button>
       </div>
 
