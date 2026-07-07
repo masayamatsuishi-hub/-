@@ -6,7 +6,7 @@ import { RequireAuth } from './components/ProtectedRoute'
 import AuthPage from './pages/AuthPage'
 import OnboardingPage from './pages/OnboardingPage'
 import DashboardPage from './pages/DashboardPage'
-import MealLogPage from './pages/MealLogPage'
+import LogPage from './pages/LogPage'
 import HistoryPage from './pages/HistoryPage'
 import AdvicePage from './pages/AdvicePage'
 import SettingsPage from './pages/SettingsPage'
@@ -33,7 +33,7 @@ function App() {
           }
         >
           <Route path="/" element={<DashboardPage />} />
-          <Route path="/log" element={<MealLogPage />} />
+          <Route path="/log" element={<LogPage />} />
           <Route path="/history" element={<HistoryPage />} />
           <Route path="/advice" element={<AdvicePage />} />
           <Route path="/pricing" element={<PricingPage />} />
