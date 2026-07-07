@@ -4,6 +4,7 @@ import { useTrainingStore } from '../store/useTrainingStore'
 import { getTrainingMenusForSport } from '../data/trainingMenus'
 import { todayStr } from '../utils/date'
 import { calcCaloriesBurned, sumTrainingCalories } from '../utils/nutrition'
+import { getErrorMessage } from '../utils/errors'
 
 export default function TrainingLogSection() {
   const { user, profile } = useAuthStore()
@@ -48,7 +49,7 @@ export default function TrainingLogSection() {
         calories_burned: preview,
       })
     } catch (e) {
-      setAddError(e instanceof Error ? e.message : '記録の追加に失敗しました')
+      setAddError(getErrorMessage(e, '記録の追加に失敗しました'))
     } finally {
       setSubmitting(false)
     }
