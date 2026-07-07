@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '../store/useAuthStore'
 import { ACTIVITY_LEVEL_LABELS, type ActivityLevel, type Sex } from '../types'
+import { SPORTS } from '../data/sports'
 
 export default function SettingsPage() {
   const { profile, user, saveProfile, signOut, loading, error } = useAuthStore()
@@ -111,11 +112,17 @@ export default function SettingsPage() {
         </div>
         <div>
           <label className="mb-1 block text-xs text-slate-400">競技種目</label>
-          <input
+          <select
             value={form.sport}
             onChange={(e) => setForm((f) => ({ ...f, sport: e.target.value }))}
             className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-emerald-500"
-          />
+          >
+            {SPORTS.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <label className="mb-1 block text-xs text-slate-400">練習強度</label>

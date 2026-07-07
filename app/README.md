@@ -5,10 +5,12 @@
 ## 主な機能
 
 - 食事記録(カロリー・タンパク質・脂質・炭水化物)。内蔵の食品データベースから選択、または手入力
+- 種目別の主な練習メニューを選択し、METs(メッツ)値から練習の消費カロリーを算出する運動記録
+- 摂取カロリー目標は「基礎代謝×生活活動係数(1.2) + その日の練習消費カロリー」から算出し、栄養計算に反映
 - PFCバランスの円グラフ表示
 - 体重あたりのタンパク質摂取目標と達成率の表示
-- BMI・基礎代謝(BMR)・推定消費カロリー(TDEE)の自動計算
-- 直近14日間の履歴表示
+- BMI・基礎代謝(BMR)の自動計算
+- 直近14日間の食事・練習履歴表示
 - Claude API を使ったAIスポーツ栄養アドバイス(Proプラン限定)
 - Stripe Checkout によるProプラン(サブスクリプション)課金
 - PWA対応(スマートフォンにインストール可能)
@@ -34,7 +36,7 @@ npm install
 ### 2. Supabase プロジェクトの準備
 
 1. [Supabase](https://supabase.com) でプロジェクトを作成
-2. SQL Editor で `supabase/migrations/0001_init.sql` を実行し、`profiles` / `meal_logs` テーブルとRLSポリシーを作成
+2. SQL Editor で `supabase/migrations/` 配下のSQLファイル(`0001_init.sql`, `0002_training_logs.sql`)を順番に実行し、`profiles` / `meal_logs` / `training_logs` テーブルとRLSポリシーを作成
 3. Authentication > Providers でメール認証を有効化(デフォルトで有効)
 
 ### 3. 環境変数の設定
@@ -96,8 +98,8 @@ app/
 ├── src/
 │   ├── components/    # 共通UIコンポーネント
 │   ├── pages/         # 画面ごとのページコンポーネント
-│   ├── store/         # Zustand ストア(認証・食事記録)
-│   ├── data/          # 内蔵食品データベース
+│   ├── store/         # Zustand ストア(認証・食事記録・練習記録)
+│   ├── data/          # 内蔵食品データベース・種目別練習メニュー(METs)
 │   ├── utils/         # 栄養計算(BMR/TDEE/PFC等)・日付ユーティリティ
 │   ├── lib/supabase.ts # Supabase クライアント
 │   └── types/         # 型定義

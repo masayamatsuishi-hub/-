@@ -3,11 +3,7 @@ import { Navigate } from 'react-router-dom'
 import { useAuthStore } from '../store/useAuthStore'
 import { ACTIVITY_LEVEL_LABELS, type ActivityLevel, type ProfileInput, type Sex } from '../types'
 import { suggestProteinTargetPerKg } from '../utils/nutrition'
-
-const SPORTS = [
-  '陸上競技', 'サッカー', 'バスケットボール', '野球', 'ラグビー', '水泳',
-  'バレーボール', '柔道・レスリング', '剣道', 'テニス', 'その他',
-]
+import { SPORTS } from '../data/sports'
 
 export default function OnboardingPage() {
   const { profile, saveProfile, loading, error } = useAuthStore()

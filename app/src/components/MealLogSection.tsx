@@ -8,7 +8,7 @@ import { MEAL_TYPE_LABELS, type MealType } from '../types'
 
 type Mode = 'food' | 'manual'
 
-export default function MealLogPage() {
+export default function MealLogSection() {
   const { user } = useAuthStore()
   const { logsByDate, fetchLogsForDate, addLog, deleteLog } = useMealStore()
   const date = todayStr()
@@ -78,9 +78,7 @@ export default function MealLogPage() {
   }
 
   return (
-    <div className="space-y-5 px-4 py-5">
-      <h1 className="text-lg font-bold">食事を記録</h1>
-
+    <div className="space-y-5">
       <div>
         <label className="mb-1 block text-xs text-slate-400">食事の種類</label>
         <div className="grid grid-cols-4 gap-2">
@@ -215,7 +213,7 @@ export default function MealLogPage() {
       )}
 
       <div>
-        <h2 className="mb-2 text-sm font-semibold text-slate-300">今日の記録</h2>
+        <h2 className="mb-2 text-sm font-semibold text-slate-300">今日の食事記録</h2>
         {logs.length === 0 ? (
           <p className="rounded-xl border border-dashed border-slate-800 p-4 text-center text-sm text-slate-500">
             まだ記録がありません

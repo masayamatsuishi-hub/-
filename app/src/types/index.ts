@@ -79,3 +79,24 @@ export interface DailyTotals {
   fat: number
   carbs: number
 }
+
+export interface TrainingMenuItem {
+  id: string
+  name: string
+  /** METs(メッツ)値 */
+  mets: number
+}
+
+export interface TrainingLog {
+  id: string
+  user_id: string
+  date: string
+  menu_name: string
+  mets: number
+  duration_minutes: number
+  calories_burned: number
+  created_at: string
+}
+
+export type TrainingLogInput = Omit<TrainingLog, 'id' | 'user_id' | 'created_at'>
+

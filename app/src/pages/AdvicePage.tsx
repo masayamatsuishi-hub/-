@@ -2,13 +2,15 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '../store/useAuthStore'
 import { useMealStore } from '../store/useMealStore'
+import { useTrainingStore } from '../store/useTrainingStore'
 import { supabase } from '../lib/supabase'
 import { todayStr } from '../utils/date'
-import { calcProteinTargetGrams, sumDailyTotals } from '../utils/nutrition'
+import { calcBmr, calcDailyCalorieTarget, calcProteinTargetGrams, sumDailyTotals, sumTrainingCalories } from '../utils/nutrition'
 
 export default function AdvicePage() {
   const { profile } = useAuthStore()
   const { logsByDate } = useMealStore()
+  const { logsByDate: trainingLogsByDate } = useTrainingStore()
   const [advice, setAdvice] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -35,8 +37,12 @@ export default function AdvicePage() {
 
   const date = todayStr()
   const logs = logsByDate[date] ?? []
+  const trainingLogs = trainingLogsByDate[date] ?? []
   const totals = sumDailyTotals(logs)
   const proteinTarget = calcProteinTargetGrams(profile.weight_kg, profile.protein_target_g_per_kg)
+  const bmr = calcBmr(profile.sex, profile.weight_kg, profile.height_cm, profile.age)
+  const exerciseCalories = sumTrainingCalories(trainingLogs)
+  const calorieTarget = calcDailyCalorieTarget(bmr, exerciseCalories)
 
   const requestAdvice = async () => {
     setLoading(true)
@@ -54,7 +60,7 @@ export default function AdvicePage() {
             activity_level: profile.activity_level,
             protein_target_g_per_kg: profile.protein_target_g_per_kg,
           },
-          today: { logs, totals, proteinTarget },
+          today: { logs, totals, proteinTarget, trainingLogs, exerciseCalories, calorieTarget },
         },
       })
       if (fnError) throw fnError
@@ -70,8 +76,8 @@ export default function AdvicePage() {
     <div className="space-y-5 px-4 py-5">
       <h1 className="text-lg font-bold">AI栄養アドバイス</h1>
       <p className="text-sm text-slate-400">
-        今日の食事記録({logs.length}件、{Math.round(totals.calories)}kcal)をもとに、{profile.sport}
-        選手向けのアドバイスを生成します。
+        今日の食事記録({logs.length}件、{Math.round(totals.calories)}kcal)と練習記録({trainingLogs.length}件、消費
+        {Math.round(exerciseCalories)}kcal)をもとに、{profile.sport}選手向けのアドバイスを生成します。
       </p>
 
       <button

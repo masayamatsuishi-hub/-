@@ -25,6 +25,9 @@ interface RequestBody {
     logs: { food_name: string; grams: number; calories: number; protein: number; fat: number; carbs: number }[]
     totals: { calories: number; protein: number; fat: number; carbs: number }
     proteinTarget: number
+    trainingLogs: { menu_name: string; mets: number; duration_minutes: number; calories_burned: number }[]
+    exerciseCalories: number
+    calorieTarget: number
   }
 }
 
@@ -77,8 +80,14 @@ Deno.serve(async (req) => {
       ? today.logs.map((l) => `- ${l.food_name}(${l.grams}g): ${l.calories}kcal P${l.protein}g F${l.fat}g C${l.carbs}g`).join('\n')
       : '(まだ記録がありません)'
 
-    const userPrompt = `以下は選手のプロフィールと本日の食事記録です。スポーツ栄養士としてのアドバイスを日本語で、
-具体的かつ実践的に(300字程度)提供してください。良い点は褒め、不足している栄養素があれば改善案となる具体的な食品を提案してください。
+    const trainingSummary = today.trainingLogs.length
+      ? today.trainingLogs
+          .map((t) => `- ${t.menu_name}(${t.duration_minutes}分, METs ${t.mets}): 消費${Math.round(t.calories_burned)}kcal`)
+          .join('\n')
+      : '(まだ記録がありません)'
+
+    const userPrompt = `以下は選手のプロフィール、本日の練習記録(METsベースの消費カロリー)、食事記録です。スポーツ栄養士としてのアドバイスを日本語で、
+具体的かつ実践的に(300字程度)提供してください。良い点は褒め、練習量に対して食事量(特にカロリー・タンパク質)が不足/過多であれば、改善案となる具体的な食品を提案してください。
 
 【プロフィール】
 性別: ${profile.sex === 'male' ? '男性' : '女性'}
@@ -86,13 +95,17 @@ Deno.serve(async (req) => {
 身長: ${profile.height_cm}cm
 体重: ${profile.weight_kg}kg
 競技: ${profile.sport}
-練習強度: ${profile.activity_level}
 タンパク質目標: ${profile.protein_target_g_per_kg}g/kg体重 (${today.proteinTarget.toFixed(0)}g)
+
+【本日の練習記録】
+${trainingSummary}
+練習による消費カロリー合計: ${Math.round(today.exerciseCalories)}kcal
+本日の摂取カロリー目標(基礎代謝×1.2+練習消費): ${Math.round(today.calorieTarget)}kcal
 
 【本日の食事記録】
 ${mealSummary}
 
-【本日の合計】
+【本日の食事合計】
 カロリー: ${Math.round(today.totals.calories)}kcal
 タンパク質: ${Math.round(today.totals.protein)}g
 脂質: ${Math.round(today.totals.fat)}g

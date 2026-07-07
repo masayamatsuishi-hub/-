@@ -1,4 +1,4 @@
-import { ACTIVITY_LEVEL_FACTORS, type ActivityLevel, type DailyTotals, type MealLog, type Sex } from '../types'
+import { ACTIVITY_LEVEL_FACTORS, type ActivityLevel, type DailyTotals, type MealLog, type Sex, type TrainingLog } from '../types'
 
 export function calcBmr(sex: Sex, weightKg: number, heightCm: number, age: number): number {
   const base = 10 * weightKg + 6.25 * heightCm - 5 * age
@@ -7,6 +7,23 @@ export function calcBmr(sex: Sex, weightKg: number, heightCm: number, age: numbe
 
 export function calcTdee(bmr: number, activityLevel: ActivityLevel): number {
   return bmr * ACTIVITY_LEVEL_FACTORS[activityLevel]
+}
+
+/** 練習以外の日常生活活動の係数(座位中心の生活を想定した控えめな値)。実際の練習消費カロリーは別途METsから加算する。 */
+export const BASE_ACTIVITY_FACTOR = 1.2
+
+/** METs(メッツ)から運動の消費カロリーを算出。 消費カロリー(kcal) = METs × 体重(kg) × 時間(h) × 1.05 */
+export function calcCaloriesBurned(mets: number, weightKg: number, durationMinutes: number): number {
+  return Math.round(mets * weightKg * (durationMinutes / 60) * 1.05 * 10) / 10
+}
+
+export function sumTrainingCalories(logs: TrainingLog[]): number {
+  return logs.reduce((sum, log) => sum + log.calories_burned, 0)
+}
+
+/** その日の摂取カロリー目標 = 基礎代謝×日常活動係数 + その日の運動(METs)消費カロリー */
+export function calcDailyCalorieTarget(bmr: number, exerciseCalories: number): number {
+  return bmr * BASE_ACTIVITY_FACTOR + exerciseCalories
 }
 
 export function calcBmi(weightKg: number, heightCm: number): number {
