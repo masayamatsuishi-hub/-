@@ -71,6 +71,8 @@ export interface FoodItem {
   protein: number
   fat: number
   carbs: number
+  /** 料理など、値の前提(具材・分量など)について補足したい場合の注記 */
+  note?: string
 }
 
 export interface DailyTotals {

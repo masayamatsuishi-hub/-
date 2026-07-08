@@ -2,11 +2,17 @@ import { useEffect, useMemo, useState } from 'react'
 import { useAuthStore } from '../store/useAuthStore'
 import { useMealStore } from '../store/useMealStore'
 import { FOODS } from '../data/foods'
+import { DISHES } from '../data/dishes'
 import { todayStr } from '../utils/date'
 import { scaleFoodMacros } from '../utils/nutrition'
-import { MEAL_TYPE_LABELS, type MealType } from '../types'
+import { MEAL_TYPE_LABELS, type FoodItem, type MealType } from '../types'
 
-type Mode = 'food' | 'manual'
+type Mode = 'food' | 'dish' | 'manual'
+
+const MODE_LABELS: Record<Exclude<Mode, 'manual'>, string> = {
+  food: '食品から選ぶ',
+  dish: '料理から選ぶ',
+}
 
 export default function MealLogSection() {
   const { user } = useAuthStore()
@@ -18,6 +24,7 @@ export default function MealLogSection() {
   const [mode, setMode] = useState<Mode>('food')
   const [query, setQuery] = useState('')
   const [selectedFoodId, setSelectedFoodId] = useState(FOODS[0].id)
+  const [selectedDishId, setSelectedDishId] = useState(DISHES[0].id)
   const [grams, setGrams] = useState('100')
   const [manual, setManual] = useState({ name: '', calories: '', protein: '', fat: '', carbs: '' })
   const [submitting, setSubmitting] = useState(false)
@@ -27,27 +34,37 @@ export default function MealLogSection() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, date])
 
-  const filteredFoods = useMemo(
-    () => FOODS.filter((f) => f.name.toLowerCase().includes(query.toLowerCase())),
-    [query],
+  const list: FoodItem[] = mode === 'dish' ? DISHES : FOODS
+  const selectedId = mode === 'dish' ? selectedDishId : selectedFoodId
+  const setSelectedId = mode === 'dish' ? setSelectedDishId : setSelectedFoodId
+
+  const filteredItems = useMemo(
+    () => list.filter((f) => f.name.toLowerCase().includes(query.toLowerCase())),
+    [list, query],
   )
 
-  const selectedFood = FOODS.find((f) => f.id === selectedFoodId) ?? FOODS[0]
+  const selectedItem = list.find((f) => f.id === selectedId) ?? list[0]
 
   useEffect(() => {
-    setGrams(String(selectedFood.servingGrams ?? 100))
-  }, [selectedFood])
+    setGrams(String(selectedItem.servingGrams ?? 100))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedItem.id])
 
-  const preview = scaleFoodMacros(selectedFood, Number(grams) || 0)
+  const preview = scaleFoodMacros(selectedItem, Number(grams) || 0)
 
-  const handleAddFood = async () => {
+  const switchMode = (next: Mode) => {
+    setMode(next)
+    setQuery('')
+  }
+
+  const handleAddItem = async () => {
     if (!user) return
     setSubmitting(true)
     try {
       await addLog(user.id, {
         date,
         meal_type: mealType,
-        food_name: selectedFood.name,
+        food_name: selectedItem.name,
         grams: Number(grams),
         ...preview,
       })
@@ -97,20 +114,23 @@ export default function MealLogSection() {
         </div>
       </div>
 
-      <div className="flex gap-2">
+      <div className="grid grid-cols-3 gap-2">
+        {(Object.entries(MODE_LABELS) as [Exclude<Mode, 'manual'>, string][]).map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            onClick={() => switchMode(value)}
+            className={`rounded-lg py-2 text-sm font-medium ${
+              mode === value ? 'bg-slate-800 text-emerald-400' : 'bg-slate-900 text-slate-500'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
         <button
           type="button"
-          onClick={() => setMode('food')}
-          className={`flex-1 rounded-lg py-2 text-sm font-medium ${
-            mode === 'food' ? 'bg-slate-800 text-emerald-400' : 'bg-slate-900 text-slate-500'
-          }`}
-        >
-          食品から選ぶ
-        </button>
-        <button
-          type="button"
-          onClick={() => setMode('manual')}
-          className={`flex-1 rounded-lg py-2 text-sm font-medium ${
+          onClick={() => switchMode('manual')}
+          className={`rounded-lg py-2 text-sm font-medium ${
             mode === 'manual' ? 'bg-slate-800 text-emerald-400' : 'bg-slate-900 text-slate-500'
           }`}
         >
@@ -118,26 +138,34 @@ export default function MealLogSection() {
         </button>
       </div>
 
-      {mode === 'food' ? (
+      {mode === 'food' || mode === 'dish' ? (
         <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
+          {mode === 'dish' && (
+            <p className="rounded-lg border border-amber-800/50 bg-amber-950/20 px-3 py-2 text-xs leading-relaxed text-amber-300">
+              料理は使用する具材の種類・量や味付けによって栄養価が大きく変わります。ここでの値は一般的なレシピをもとにした目安です。実際の食事内容が分かる場合は「食品から選ぶ」で食材ごとに積み上げる方がより正確です。
+            </p>
+          )}
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="食品を検索..."
+            placeholder={mode === 'dish' ? '料理を検索...' : '食品を検索...'}
             className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-emerald-500"
           />
           <select
             size={5}
-            value={selectedFoodId}
-            onChange={(e) => setSelectedFoodId(e.target.value)}
+            value={selectedId}
+            onChange={(e) => setSelectedId(e.target.value)}
             className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-emerald-500"
           >
-            {filteredFoods.map((f) => (
+            {filteredItems.map((f) => (
               <option key={f.id} value={f.id}>
                 {f.name} ({f.unit})
               </option>
             ))}
           </select>
+          {mode === 'dish' && selectedItem.note && (
+            <p className="text-xs text-slate-500">※ {selectedItem.note}</p>
+          )}
           <div>
             <label className="mb-1 block text-xs text-slate-400">量(g)</label>
             <input
@@ -156,7 +184,7 @@ export default function MealLogSection() {
           </div>
           <button
             type="button"
-            onClick={handleAddFood}
+            onClick={handleAddItem}
             disabled={submitting}
             className="w-full rounded-lg bg-emerald-500 py-2.5 text-sm font-semibold text-slate-950 hover:bg-emerald-400 disabled:opacity-50"
           >
